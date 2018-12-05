@@ -14,21 +14,19 @@
 
 #include "serialportreader.h"
 
-MainWindow::MainWindow(QSerialPort *serialPort, QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow),
   standardOutput(stdout),
-  m_standardOutput(stdout),
-  m_serialPort(serialPort)
+  m_standardOutput(stdout)
 {
   ui->setupUi(this);
   setGeometry(400, 250, 542, 390);
   
-  // setupDemo();
+  setupDemo();
 
 
   // Serial Port ------------------------------------------------------
-  /*
   serialPort.setPortName(serialPortName);
 
   const int serialPortBaudRate = QSerialPort::Baud9600;
@@ -36,23 +34,20 @@ MainWindow::MainWindow(QSerialPort *serialPort, QWidget *parent) :
 
   // Open port
   if (!serialPort.open(QIODevice::ReadOnly)) {
-      standardOutput << QObject::tr("Failed to open port %1, error: %2")
-                        .arg(serialPortName)
-                        .arg(serialPort.errorString())
+      standardOutput << QObject::tr("Failed to open port ")
                      << endl;
-  }*/
+  }
 
-  // Instantiate
-  // SerialPortReader serialPortReader(&serialPort);
-  // m_serialPort = &serialPort ;
-  // -------------------------------------------------------------------
+
 
   // setup a timer that repeatedly calls serial port reading
-  connect(m_serialPort, &QSerialPort::readyRead, this, &MainWindow::handleReadyRead);
+  connect(&serialPort, &QSerialPort::readyRead, this, &MainWindow::handleReadyRead);
   // connect(m_serialPort, &QSerialPort::errorOccurred, this, &SerialPortReader::handleError);
   connect(&m_timer, &QTimer::timeout, this, &MainWindow::handleTimeout);
 
   m_timer.start(100);  // Interval 0 means to refresh as fast as possible
+  // -------------------------------------------------------------------
+
 
 }
 
@@ -122,13 +117,8 @@ void MainWindow::realtimeDataSlot()
   if (key-lastPointKey > 0.002) // at most add point every 2 ms
   {
 
-    // Get and prepare data from serialportreader class
-   // QDataStream ds(serialPortReader_.m_readData);
-   // int size; // Since the size you're trying to read appears to be 2 bytes
-   // ds >> size;
-
     // add data to lines:
-    ui->customPlot->graph(0)->addData(key, 10);
+    ui->customPlot->graph(0)->addData(key, distance);
     ui->customPlot->graph(1)->addData(key, qCos(key)+qrand()/(double)RAND_MAX*0.5*qSin(key/0.4364));
 
     // rescale value (vertical) axis to fit the current data:
@@ -217,7 +207,10 @@ MainWindow::~MainWindow()
 void MainWindow::handleReadyRead()
 {
 
-    m_readData.append(m_serialPort->readAll());
+    m_readData.clear();
+    // m_readData.append(serialPort.readAll());
+    m_readData.insert(0,serialPort.readAll());
+    m_readData.chop(2);
 
     if (!m_timer.isActive())
         m_timer.start(100);
@@ -230,21 +223,22 @@ void MainWindow::handleTimeout()
     if (m_readData.isEmpty()) {
         m_standardOutput << QObject::tr("No data was currently available "
                                         "for reading from port %1")
-                            .arg(m_serialPort->portName())
+                            .arg(serialPort.portName())
                          << endl;
     } else {
         m_standardOutput << QObject::tr("Data successfully received from port %1")
-                            .arg(m_serialPort->portName())
+                            .arg(serialPort.portName())
                          << endl;
         m_standardOutput << m_readData << endl;
+        qDebug()<< m_readData << endl ;
 
 
-         // Something like this should work, using a data stream to read from the buffer:
-         //
-         // QDataStream ds(buffer);
-         //  short size; // Since the size you're trying to read appears to be 2 bytes
-         //  ds >> size;
-         //
+        distance = m_readData.toDouble() ;
+
+
+        qDebug() << "Value is " << distance << endl ;
+
+
 
     }
 
@@ -258,8 +252,8 @@ void MainWindow::handleError(QSerialPort::SerialPortError serialPortError)
     if (serialPortError == QSerialPort::ReadError) {
         m_standardOutput << QObject::tr("An I/O error occurred while reading "
                                         "the data from port %1, error: %2")
-                            .arg(m_serialPort->portName())
-                            .arg(m_serialPort->errorString())
+                            .arg(serialPort.portName())
+                            .arg(serialPort.errorString())
                          << endl;
         QCoreApplication::exit(1);
     }

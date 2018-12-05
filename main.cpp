@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
 #endif
 
 
+  /*
   // Serial Port ------------------------------------------------------  
   QTextStream standardOutput(stdout);
   QSerialPort serialPort;
@@ -42,7 +43,9 @@ int main(int argc, char *argv[])
 
   const int serialPortBaudRate = QSerialPort::Baud9600;
   serialPort.setBaudRate(serialPortBaudRate);
+  */
 
+  /*
   // Open port
   if (!serialPort.open(QIODevice::ReadOnly)) {
       standardOutput << QObject::tr("Failed to open port %1, error: %2")
@@ -50,6 +53,8 @@ int main(int argc, char *argv[])
                         .arg(serialPort.errorString())
                      << endl;
   }
+  */
+
 
   /*
   // Instantiate
@@ -59,7 +64,7 @@ int main(int argc, char *argv[])
 
 
   QApplication a(argc, argv);
-  MainWindow w(&serialPort);
+  MainWindow w;
   w.show();
   
   return a.exec();

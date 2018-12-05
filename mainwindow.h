@@ -62,7 +62,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
   
 public:
-  explicit MainWindow(QSerialPort *serialPort, QWidget *parent = 0);
+  explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
   
   void setupDemo();
@@ -87,13 +87,15 @@ private:
 
   // Serial port
   QTextStream standardOutput;
-  // QSerialPort serialPort;
-  // const QString serialPortName = "ttyACM0";
+  QSerialPort serialPort;
+  const QString serialPortName = "ttyACM0";
 
   QSerialPort *m_serialPort = nullptr;
   QByteArray m_readData;                // data read from serial port
   QTextStream m_standardOutput;
   QTimer m_timer;
+
+  double distance ;
 
 
 
